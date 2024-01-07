@@ -1,0 +1,21 @@
+NAME
+  VTK::SpsIOGeneral
+LIBRARY_NAME
+  vtkSpsIOGeneral
+GROUPS
+  SpsIO
+DEPENDS
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::SpsIOCore
+PRIVATE_DEPENDS
+  VTK::FiltersCore
+  VTK::IOPLY
+  VTK::IOGeometry
+  VTK::IOLegacy
+TEST_DEPENDS
+  VTK::TestingCore
+  VTK::TestingRendering
+  VTK::IOXML
+  VTK::CommonDataModel
+  VTK::FiltersSources

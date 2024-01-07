@@ -1,0 +1,25 @@
+NAME
+  VTK::SpsCore
+LIBRARY_NAME
+  vtkSpsCore
+GROUPS
+  StandAlone
+DEPENDS
+  VTK::CommonCore
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::IOXML
+#  VTK::cli11
+#  VTK::fmt
+OPTIONAL_DEPENDS
+  VTK::FiltersCore
+PRIVATE_DEPENDS
+  VTK::IOCore
+  VTK::loguru
+  VTK::ParallelCore
+  VTK::pugixml
+  VTK::vtksys
+TEST_DEPENDS
+  VTK::FiltersCore
+  VTK::FiltersSources
+  VTK::TestingCore

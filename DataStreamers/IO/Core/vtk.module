@@ -1,0 +1,27 @@
+NAME
+  VTK::SpsIOCore
+LIBRARY_NAME
+  vtkSpsIOCore
+GROUPS
+  SpsIO
+DEPENDS
+  VTK::CommonExecutionModel
+  VTK::IOCore
+  VTK::IOXML
+PRIVATE_DEPENDS
+  VTK::SpsCore
+  VTK::SpsMisc
+  VTK::CommonMisc
+  VTK::FiltersCore
+  VTK::IOLegacy
+  VTK::IOImage
+  VTK::IOParallelXML
+  VTK::jsoncpp
+  VTK::ParallelCore
+  VTK::vtksys
+TEST_DEPENDS
+  VTK::TestingCore
+TEST_OPTIONAL_DEPENDS
+  VTK::IOInfovis
+  VTK::ParallelMPI
+  VTK::TestingRendering

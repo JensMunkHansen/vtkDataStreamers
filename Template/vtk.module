@@ -1,0 +1,10 @@
+NAME
+  VTK::Template
+LIBRARY_NAME
+  vtkTemplate
+GROUPS
+  StandAlone
+DEPENDS
+  VTK::CommonDataModel
+PRIVATE_DEPENDS
+TEST_DEPENDS

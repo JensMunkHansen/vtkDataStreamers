@@ -1,0 +1,21 @@
+NAME
+  VTK::SpsIOImage
+LIBRARY_NAME
+  vtkSpsIOImage
+GROUPS
+  StandAlone
+DEPENDS
+  VTK::CommonDataModel
+  VTK::CommonExecutionModel
+  VTK::SpsIOCore
+PRIVATE_DEPENDS
+  VTK::IOImage
+TEST_DEPENDS
+  VTK::IOImage
+  VTK::TestingCore
+  VTK::TestingRendering
+  VTK::RenderingCore
+  VTK::RenderingOpenGL2
+  VTK::RenderingVolumeOpenGL2
+  VTK::FiltersHybrid
+  VTK::InteractionStyle
