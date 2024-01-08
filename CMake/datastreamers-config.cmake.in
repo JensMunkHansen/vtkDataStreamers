@@ -1,0 +1,283 @@
+#-----------------------------------------------------------------------------
+#
+# SPSConfig.cmake - cmake configuration file for external projects.
+#
+#-----------------------------------------------------------------------------
+
+# Right now find_package(sps COMPONENTS VTK::SpsSources etc) is supported
+#
+# TODO: Support naming components without VTK:: prefix
+#       Support the python wrappers (NICE TO HAVE)
+
+@SPS_CONFIG_CODE@
+
+if (CMAKE_VERSION VERSION_LESS "3.12")
+  set("${CMAKE_FIND_PACKAGE_NAME}_FOUND" 0)
+  set("${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE"
+    "VTK requires CMake 3.12 in order to reliably be used.")
+  return ()
+endif ()
+
+cmake_policy(PUSH)
+cmake_policy(VERSION 3.12)
+
+# The C and C++ flags added to the cmake-configured flags.
+set(SPS_REQUIRED_C_FLAGS "@SPS_REQUIRED_C_FLAGS@")
+set(SPS_REQUIRED_CXX_FLAGS "@SPS_REQUIRED_CXX_FLAGS@")
+
+# The version number
+set(SPS_MAJOR_VERSION "@SPS_MAJOR_VERSION@")
+set(SPS_MINOR_VERSION "@SPS_MINOR_VERSION@")
+set(SPS_PATCH_VERSION "@SPS_PATCH_VERSION@")
+
+# Legacy (for backwards compatibility)
+set(SPS_BUILD_VERSION "${SPS_PATCH_VERSION}")
+
+# Configured settings
+set(SPS_BUILD_SHARED_LIBS "@BUILD_SHARED_LIBS@")
+set(SPS_USE_ITK "@USE_ITK@") # TODO: Use this properly
+
+# Auto-configured settings
+set(SPS_USE_VTKZLIB "@SPS_USE_VTKZLIB@")
+
+# Dependencies
+set(SPS_VTK_DIR "@VTK_DIR@")
+if(NOT VTK_FOUND)
+  find_package(VTK PATHS "${SPS_VTK_DIR}")
+else()
+  get_filename_component(tmp1 "${SPS_VTK_DIR}" REALPATH)
+  get_filename_component(tmp2 "${VTK_DIR}" REALPATH)
+  if(NOT "${tmp1}" STREQUAL "${tmp2}")
+    message(WARNING
+      "Mismatch for VTK between vtkSps and current project: "
+      "SPS_DIR=${SPS_DIR} "
+      "VTK_SPS_DIR=${SPS_VTK_DIR} "
+      "VTK_DIR=${VTK_DIR}")
+  endif()
+endif()
+
+# Check for missing components
+
+set(_datastreamers_real_components)
+foreach (_datastreamers_component IN LISTS "${CMAKE_FIND_PACKAGE_NAME}_FIND_COMPONENTS")
+  # Support selection of component vtkDatastreamersSources instead of VTK::DatastreamersSources
+  if (_datastreamers_component MATCHES "^vtk")
+    string(SUBSTRING "${_datastreamers_component}" 3 -1 _datastreamers_actual_component)
+    if (NOT ${CMAKE_FIND_PACKAGE_NAME}_FIND_VERSION)
+      if (NOT ${CMAKE_FIND_PACKAGE_NAME}_FIND_QUIETLY)
+        message(DEPRECATION
+          "The new name for the '${_datastreamers_component}' component is "
+          "'${_datastreamers_actual_component}'")
+      endif ()
+    endif()
+    list(APPEND _datastreamers_real_components
+      "${_datastreamers_actual_component}")
+    set("${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED_${_datastreamers_actual_component}"
+      "${${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED_${_datastreamers_component}}")
+    unset(_datastreamers_actual_component)
+  else()
+    list(APPEND _datastreamers_real_components
+      "${_datastreamers_component}")
+  endif()
+endforeach()
+unset(_datastreamers_component)
+set("${CMAKE_FIND_PACKAGE_NAME}_FIND_COMPONENTS"
+  ${_datastreamers_real_components})
+unset(_datastreamers_real_components)
+
+set("${CMAKE_FIND_PACKAGE_NAME}_CMAKE_MODULE_PATH_save" "${CMAKE_MODULE_PATH}")
+list(INSERT CMAKE_MODULE_PATH 0
+  "${CMAKE_CURRENT_LIST_DIR}")
+
+set("${CMAKE_FIND_PACKAGE_NAME}_CMAKE_PREFIX_PATH_save" "${CMAKE_PREFIX_PATH}")
+include("${CMAKE_CURRENT_LIST_DIR}/datastreamers-prefix.cmake")
+
+# Steel prefix like VTK
+set("${CMAKE_FIND_PACKAGE_NAME}_PREFIX_PATH"
+  "${_vtk_module_import_prefix}")
+unset(_vtk_module_import_prefix)
+list(INSERT CMAKE_PREFIX_PATH 0
+  "${${CMAKE_FIND_PACKAGE_NAME}_PREFIX_PATH}")
+
+set("${CMAKE_FIND_PACKAGE_NAME}_VERSION" "@DATASTREAMERS_MAJOR_VERSION@.@DATASTREAMERS_MINOR_VERSION@.@DATASTREAMERS_PATCH_VERSION@")
+set("${CMAKE_FIND_PACKAGE_NAME}_MAJOR_VERSION" "@DATASTREAMERS_MAJOR_VERSION@")
+set("${CMAKE_FIND_PACKAGE_NAME}_MINOR_VERSION" "@DATASTREAMERS_MINOR_VERSION@")
+set("${CMAKE_FIND_PACKAGE_NAME}_BUILD_VERSION" "@DATASTREAMERS_BUILD_VERSION@")
+
+set("${CMAKE_FIND_PACKAGE_NAME}_AVAILABLE_COMPONENTS" "@datastreamers_all_components@")
+
+unset("${CMAKE_FIND_PACKAGE_NAME}_FOUND")
+
+# All components if no special components are selected
+set("${CMAKE_FIND_PACKAGE_NAME}_AVAILABLE_COMPONENTS" "@datastreamers_all_components@")
+
+# TODO: Something similar to vtkCMakeBackport.cmake (do we need it)
+include("${CMAKE_CURRENT_LIST_DIR}/${CMAKE_FIND_PACKAGE_NAME}-targets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/${CMAKE_FIND_PACKAGE_NAME}-targets.cmake")
+include("${CMAKE_CURRENT_LIST_DIR}/${CMAKE_FIND_PACKAGE_NAME}-vtk-module-properties.cmake")
+
+include("${CMAKE_CURRENT_LIST_DIR}/vtk-find-package-helpers.cmake" OPTIONAL)
+include("${CMAKE_CURRENT_LIST_DIR}/${CMAKE_FIND_PACKAGE_NAME}-vtk-module-find-packages.cmake")
+
+# We always assume QT5 - if not define DATASTREAMERS_QT_VERSION here based on say
+# datastreamers_qt_major_version
+
+# Wrapping - extra steps is necessary (postponed)
+# set("${CMAKE_FIND_PACKAGE_NAME}_PYTHON_VERSION" "@vtk_python_version@")
+# set("${CMAKE_FIND_PACKAGE_NAME}_WRAP_PYTHON" "@VTK_WRAP_PYTHON@")
+# if (${CMAKE_FIND_PACKAGE_NAME}_WRAP_PYTHON)
+#   include("${CMAKE_CURRENT_LIST_DIR}/VTKPython-targets.cmake")
+#   include("${CMAKE_CURRENT_LIST_DIR}/vtkmodules-vtk-python-module-properties.cmake")
+#   include("${CMAKE_CURRENT_LIST_DIR}/vtkModuleWrapPython.cmake")
+#   set("${CMAKE_FIND_PACKAGE_NAME}_PYTHONPATH" "@VTK_PYTHON_SITE_PACKAGES_SUFFIX@")
+# endif ()
+#
+
+# Check the selected components
+# We need to throw an error when the find_package is issues not just when
+# it is searched for when using target_link_libraries
+
+set(_datastreamers_components_to_check)
+foreach (_datastreamers_component IN LISTS "${CMAKE_FIND_PACKAGE_NAME}_FIND_COMPONENTS")
+  # TRY TO STRIP OFF VTK::
+  if (_datastreamers_component MATCHES "VTK::")
+    string(SUBSTRING "${_datastreamers_component}" 5 -1 _datastreamers_naked_component)
+  endif()
+
+  if (DEFINED "${CMAKE_FIND_PACKAGE_NAME}_${_datastreamers_component}_FOUND")
+    # It was already not-found (likely due to `find-package` failures).
+  elseif (TARGET ${_datastreamers_component})
+    # The components are assumed prepended with VTK:: (a mess)
+    list(APPEND _datastreamers_components_to_check
+      "${_datastreamers_component}")
+  elseif (TARGET ${_datastreamers_naked_component})
+    # Introduced when debugging
+  else ()
+    set("${CMAKE_FIND_PACKAGE_NAME}_${_datastreamers_component}_FOUND" 0)
+    list(APPEND "${CMAKE_FIND_PACKAGE_NAME}_${_datastreamers_component}_NOT_FOUND_MESSAGE"
+      "The ${_datastreamers_component} component is not available.")
+    message("STEP3")
+  endif ()
+endforeach ()
+unset(_datastreamers_component)
+
+
+while (_datastreamers_components_to_check)
+  list(GET _datastreamers_components_to_check 0 _datastreamers_component)
+  list(REMOVE_AT _datastreamers_components_to_check 0)
+  if (DEFINED "${CMAKE_FIND_PACKAGE_NAME}_${_datastreamers_component}_FOUND")
+    # We've already made a determiniation.
+    continue ()
+  endif ()
+
+  # The components are assumed to be preprended with VTK which is not
+  # the package name. Really we should change this to DATASTREAMERS::
+  get_property(_datastreamers_public_dependencies
+#    TARGET    "${CMAKE_FIND_PACKAGE_NAME}::${_datastreamers_component}"
+    TARGET    "${_datastreamers_component}"
+    PROPERTY  "INTERFACE_datastreamers_module_depends")
+  get_property(_datastreamers_private_dependencies
+    TARGET    "${_datastreamers_component}"
+    PROPERTY  "INTERFACE_datastreamers_module_private_depends")
+  get_property(_datastreamers_optional_dependencies
+    TARGET    "${_datastreamers_component}"
+    PROPERTY  "INTERFACE_datastreamers_module_optional_depends")
+  set(_datastreamers_dependencies
+    ${_datastreamers_public_dependencies}
+    ${_datastreamers_private_dependencies})
+  foreach (_datastreamers_optional_dependency IN LISTS _datastreamers_optional_dependencies)
+    if (TARGET "${_datastreamers_optional_dependency}")
+      list(APPEND _datastreamers_dependencies
+        "${_datastreamers_optional_dependency}")
+    endif ()
+  endforeach ()
+  unset(_datastreamers_public_dependencies)
+  unset(_datastreamers_private_dependencies)
+  unset(_datastreamers_optional_dependency)
+  unset(_datastreamers_optional_dependencies)
+
+  # Strip off DATASTREAMERS:: (only relevant once we get rid of VTK:: and the requirment
+  # for naming components VTK::DatastreamersSources etc.
+  string(REPLACE "${CMAKE_FIND_PACKAGE_NAME}::" "" _datastreamers_dependencies "${_datastreamers_dependencies}")
+  set(_datastreamers_all_dependencies_checked TRUE)
+  foreach (_datastreamers_dependency IN LISTS _datastreamers_dependencies)
+    if (DEFINED "${CMAKE_FIND_PACKAGE_NAME}_${_datastreamers_dependency}_FOUND")
+      if (NOT ${CMAKE_FIND_PACKAGE_NAME}_${_datastreamers_dependency}_FOUND)
+        set("${CMAKE_FIND_PACKAGE_NAME}_${_datastreamers_component}_FOUND" 0)
+        list(APPEND "${CMAKE_FIND_PACKAGE_NAME}_${_datastreamers_component}_NOT_FOUND_MESSAGE"
+          "Failed to find the ${_datastreamers_dependency} component.")
+      endif ()
+    else ()
+      # Check its dependencies.
+      list(APPEND _datastreamers_components_to_check
+        "${_datastreamers_dependency}")
+      set(_datastreamers_all_found FALSE)
+    endif ()
+  endforeach ()
+  if (NOT DEFINED "${CMAKE_FIND_PACKAGE_NAME}_${_datastreamers_component}_FOUND")
+    if (_datastreamers_all_dependencies_checked)
+      set("${CMAKE_FIND_PACKAGE_NAME}_${_datastreamers_component}_FOUND" 1)
+    else ()
+      list(APPEND _datastreamers_components_to_check
+        "${_datastreamers_component}")
+    endif ()
+  endif ()
+  unset(_datastreamers_all_dependencies_checked)
+  unset(_datastreamers_dependency)
+  unset(_datastreamers_dependencies)
+endwhile ()
+unset(_datastreamers_component)
+unset(_datastreamers_components_to_check)
+
+# Create list of missing components
+set(_datastreamers_missing_components)
+foreach (_datastreamers_component IN LISTS "${CMAKE_FIND_PACKAGE_NAME}_FIND_COMPONENTS")
+  if (NOT ${CMAKE_FIND_PACKAGE_NAME}_${_datastreamers_component}_FOUND AND ${CMAKE_FIND_PACKAGE_NAME}_FIND_REQUIRED_${_datastreamers_component})
+    list(APPEND _datastreamers_missing_components
+      "${_datastreamers_component}")
+  endif ()
+endforeach ()
+
+# Make the list unique
+if (_datastreamers_missing_components)
+  list(REMOVE_DUPLICATES _datastreamers_missing_components)
+  list(SORT _datastreamers_missing_components)
+  string(REPLACE ";" ", " _datastreamers_missing_components "${_datastreamers_missing_components}")
+  set("${CMAKE_FIND_PACKAGE_NAME}_FOUND" 0)
+  set("${CMAKE_FIND_PACKAGE_NAME}_NOT_FOUND_MESSAGE"
+    "Could not find the ${CMAKE_FIND_PACKAGE_NAME} package with the following required components: ${_datastreamers_missing_components}.")
+endif ()
+unset(_datastreamers_missing_components)
+
+# Set the libraries variable
+set("${CMAKE_FIND_PACKAGE_NAME}_LIBRARIES")
+if (NOT DEFINED "${CMAKE_FIND_PACKAGE_NAME}_FOUND")
+  # If nothing went wrong, we've successfully found the package.
+  set("${CMAKE_FIND_PACKAGE_NAME}_FOUND" 1)
+  set(_datastreamers_found_components
+    ${${CMAKE_FIND_PACKAGE_NAME}_FIND_COMPONENTS})
+  if (NOT _datastreamers_found_components)
+    set(_datastreamers_found_components
+      ${${CMAKE_FIND_PACKAGE_NAME}_AVAILABLE_COMPONENTS})
+  endif()
+
+  # Build the `_LIBRARIES` variable.
+  foreach (_datastreamers_component IN LISTS _datastreamers_found_components)
+    # When naming is DATASTREAMERS:: we need to add this here
+    if (TARGET ${_datastreamers_component})
+      # And here
+      list(APPEND "${CMAKE_FIND_PACKAGE_NAME}_LIBRARIES"
+        "${_datastreamers_component}")
+    endif ()
+  endforeach ()
+  unset(_datastreamers_component)
+  unset(_datastreamers_found_components)
+else()
+  message("No components found so no DATASTREAMERS_LIBRARIES is created")
+endif ()
+
+# This is the library list
+set(DATASTREAMERS_LIBRARIES ${${CMAKE_FIND_PACKAGE_NAME}_LIBRARIES})
+
+
+cmake_policy(POP)

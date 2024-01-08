@@ -13,14 +13,23 @@ if (STANDALONE)
       cmake_policy(SET ${policy} NEW)
     endif()
   endforeach()
+
+  set(DATASTREAMERS_INSTALL_SDK ON)
   
   include(CMakeDependentOption)
   
-  project(DataStreamers
+  project(datastreamers
     LANGUAGES
     CXX)
+
+  # Allow custom cmake overrides
+  set(datastreamers_cmake_dir ${CMAKE_CURRENT_SOURCE_DIR}/CMake)
+  set(CMAKE_MODULE_PATH ${datastreamers_cmake_dir} ${CMAKE_MODULE_PATH})
   
-  find_package(VTK 9.3 REQUIRED)
+  find_package(VTK 9 REQUIRED)
+
+  option(DATASTREAMERS_RELOCATABLE_INSTALL "Do not embed hard-coded paths into the install" ON)
+  mark_as_advanced(DATASTREAMERS_RELOCATABLE_INSTALL)
   
   option(BUILD_SHARED_LIBS "Build shared libraries." ON)
   
@@ -55,8 +64,8 @@ if (STANDALONE)
     "VTK::DataStreamers"
   )
   
-  option(DataStreamers_BUILD_ALL_MODULES "Build all modules by default" ON)
-  mark_as_advanced(DataStreamers_BUILD_ALL_MODULES)
+  option(DATASTREAMERS_BUILD_ALL_MODULES "Build all modules by default" ON)
+  mark_as_advanced(DATASTREAMERS_BUILD_ALL_MODULES)
   
   set(datastreamers_source_directories
     "${CMAKE_CURRENT_SOURCE_DIR}/DataStreamers/Misc"
@@ -70,6 +79,11 @@ if (STANDALONE)
   vtk_module_find_modules(datastreamers_module_files ${datastreamers_source_directories})
   
   vtk_module_find_kits(datastreamers_kit_files ${datastreamers_source_directories})
+
+  if (NOT DEFINED datastreamers_cmake_destination)
+    set(datastreamers_cmake_destination
+      "${CMAKE_INSTALL_LIBDIR}/cmake/datastreamers${datastreamers_version_suffix}")
+  endif()
   
   vtk_module_scan(
     MODULE_FILES        ${datastreamers_module_files}
@@ -78,7 +92,7 @@ if (STANDALONE)
     REJECT_MODULES      ${datastreamers_rejected_modules}
     PROVIDES_MODULES    datastreamers_modules
     PROVIDES_KITS       datastreamers_kits
-    WANT_BY_DEFAULT     "${DataStreamers_BUILD_ALL_MODULES}"
+    WANT_BY_DEFAULT     "${DATASTREAMERS_BUILD_ALL_MODULES}"
     ENABLE_TESTS        "${BUILD_TESTING}"
   )
   
@@ -95,10 +109,27 @@ if (STANDALONE)
     VERSION               "${DataStreamers_VERSION}"
     SOVERSION             "1" # If the library is small and should work as a remote module to VTK
     TEST_DATA_TARGET      DataStreamersData
-    INSTALL_HEADERS       "${DataStreamers_INSTALL_SDK}"
+    INSTALL_HEADERS       "${DATASTREAMERS_INSTALL_SDK}"
     USE_EXTERNAL          "${DataStreamers_USE_EXTERNAL}"
     TEST_INPUT_DATA_DIRECTORY   "${CMAKE_CURRENT_SOURCE_DIR}/Testing"
     TEST_OUTPUT_DATA_DIRECTORY  "${CMAKE_CURRENT_BINARY_DIR}/ExternalData/Testing")
+
+  # Used for potential new way of installation
+  if (DATASTREAMERS_INSTALL_SDK)
+    set(datastreamers_cmake_build_dir
+      "${CMAKE_CURRENT_BINARY_DIR}/${datastreamers_cmake_destination}")
+    include(datastreamersInstallCMakePackage)
+  endif ()
+  
+  if (NOT TARGET UNINSTALL)
+    add_custom_target(UNINSTALL
+      COMMAND
+        "${CMAKE_COMMAND}"
+          "-DCMAKE_BINARY_DIR=${CMAKE_BINARY_DIR}"
+          -P "${CMAKE_CURRENT_LIST_DIR}/CMake/datastreamersUninstall.cmake"
+      USES_TERMINAL
+      COMMENT "Uninstalling DataStreamers")
+  endif ()
 else()
   add_subdirectory(DataStreamers)
 endif()
