@@ -1,4 +1,6 @@
-option(STANDALONE "Stand alone" ON)
+option(STANDALONE "Stand alone" OFF)
+
+# TODO: Check vtkSps before October 13, where -targets.cmake were created
 
 if (STANDALONE)
   cmake_minimum_required(VERSION 3.8...3.12 FATAL_ERROR)
