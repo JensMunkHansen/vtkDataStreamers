@@ -19,3 +19,8 @@ double vtkTemplate::EvaluateFunction(double x[3])
 void vtkTemplate::EvaluateGradient(double x[3], double n[3])
 {
 }
+
+void vtkTemplate::PrintSelf(ostream& os, vtkIndent indent)
+{
+  this->Superclass::PrintSelf(os, indent);
+}
