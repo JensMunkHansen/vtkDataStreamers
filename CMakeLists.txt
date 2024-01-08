@@ -61,7 +61,7 @@ if (STANDALONE)
   endif()
   
   set(datastreamers_requested_modules
-    "VTK::DataStreamers"
+    "VTK::SpsIOImage"
   )
   
   option(DATASTREAMERS_BUILD_ALL_MODULES "Build all modules by default" ON)

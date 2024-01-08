@@ -9,7 +9,7 @@
 # TODO: Support naming components without VTK:: prefix
 #       Support the python wrappers (NICE TO HAVE)
 
-@SPS_CONFIG_CODE@
+@DATASTREAMERS_CONFIG_CODE@
 
 if (CMAKE_VERSION VERSION_LESS "3.12")
   set("${CMAKE_FIND_PACKAGE_NAME}_FOUND" 0)
@@ -22,36 +22,36 @@ cmake_policy(PUSH)
 cmake_policy(VERSION 3.12)
 
 # The C and C++ flags added to the cmake-configured flags.
-set(SPS_REQUIRED_C_FLAGS "@SPS_REQUIRED_C_FLAGS@")
-set(SPS_REQUIRED_CXX_FLAGS "@SPS_REQUIRED_CXX_FLAGS@")
+set(DATASTREAMERS_REQUIRED_C_FLAGS "@DATASTREAMERS_REQUIRED_C_FLAGS@")
+set(DATASTREAMERS_REQUIRED_CXX_FLAGS "@DATASTREAMERS_REQUIRED_CXX_FLAGS@")
 
 # The version number
-set(SPS_MAJOR_VERSION "@SPS_MAJOR_VERSION@")
-set(SPS_MINOR_VERSION "@SPS_MINOR_VERSION@")
-set(SPS_PATCH_VERSION "@SPS_PATCH_VERSION@")
+set(DATASTREAMERS_MAJOR_VERSION "@DATASTREAMERS_MAJOR_VERSION@")
+set(DATASTREAMERS_MINOR_VERSION "@DATASTREAMERS_MINOR_VERSION@")
+set(DATASTREAMERS_PATCH_VERSION "@DATASTREAMERS_PATCH_VERSION@")
 
 # Legacy (for backwards compatibility)
-set(SPS_BUILD_VERSION "${SPS_PATCH_VERSION}")
+set(DATASTREAMERS_BUILD_VERSION "${DATASTREAMERS_PATCH_VERSION}")
 
 # Configured settings
-set(SPS_BUILD_SHARED_LIBS "@BUILD_SHARED_LIBS@")
-set(SPS_USE_ITK "@USE_ITK@") # TODO: Use this properly
+set(DATASTREAMERS_BUILD_SHARED_LIBS "@BUILD_SHARED_LIBS@")
+set(DATASTREAMERS_USE_ITK "@USE_ITK@") # TODO: Use this properly
 
 # Auto-configured settings
-set(SPS_USE_VTKZLIB "@SPS_USE_VTKZLIB@")
+set(DATASTREAMERS_USE_VTKZLIB "@DATASTREAMERS_USE_VTKZLIB@")
 
 # Dependencies
-set(SPS_VTK_DIR "@VTK_DIR@")
+set(DATASTREAMERS_VTK_DIR "@VTK_DIR@")
 if(NOT VTK_FOUND)
-  find_package(VTK PATHS "${SPS_VTK_DIR}")
+  find_package(VTK PATHS "${DATASTREAMERS_VTK_DIR}")
 else()
-  get_filename_component(tmp1 "${SPS_VTK_DIR}" REALPATH)
+  get_filename_component(tmp1 "${DATASTREAMERS_VTK_DIR}" REALPATH)
   get_filename_component(tmp2 "${VTK_DIR}" REALPATH)
   if(NOT "${tmp1}" STREQUAL "${tmp2}")
     message(WARNING
       "Mismatch for VTK between vtkSps and current project: "
-      "SPS_DIR=${SPS_DIR} "
-      "VTK_SPS_DIR=${SPS_VTK_DIR} "
+      "DATASTREAMERS_DIR=${DATASTREAMERS_DIR} "
+      "VTK_DATASTREAMERS_DIR=${DATASTREAMERS_VTK_DIR} "
       "VTK_DIR=${VTK_DIR}")
   endif()
 endif()
