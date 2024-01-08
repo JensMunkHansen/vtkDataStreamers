@@ -14,6 +14,10 @@
 #include <string>
 #include <vector>
 
+#include <sys/types.h>
+#include <sys/stat.h>
+
+
 const int nFiles = 8;
 
 
@@ -21,10 +25,16 @@ int TestImageFileSeriesReader(int argc, char *argv[])
 {
   char* tempDir =
     vtkTestUtilities::GetArgOrEnvOrDefault("-T", argc, argv, "VTK_TEMP_DIR", "Testing/Temporary");
-  if (!tempDir)
+
+  struct stat finfo;
+  if (stat(tempDir, &finfo) != 0)
   {
-    cerr << "Could not determine temporary directory.\n";
+    cerr << "Could not determine temporary directory: Set the environment variable VTK_TEMP_DIR\n";
     return 1;
+  }
+  else if (!(finfo.st_mode & S_IFDIR))
+  {
+      cerr << "The resolved temporary directory is not a directory\n";
   }
 
   std::string outpath = tempDir;
